@@ -1,0 +1,53 @@
+@Oportunidades_HostAddress = http://localhost:5020
+
+### Health check
+GET {{Oportunidades_HostAddress}}/health
+Accept: application/json
+
+### Crear una oportunidad (el estado inicial siempre es Nueva)
+POST {{Oportunidades_HostAddress}}/api/oportunidades
+Content-Type: application/json
+
+{
+  "nombre": "  Renovación licencias 2027  ",
+  "cliente": "  Acme S.A.  ",
+  "montoEstimado": 125000.50
+}
+
+### Listar oportunidades (con filtros y paginación)
+GET {{Oportunidades_HostAddress}}/api/oportunidades?page=1&pageSize=20
+Accept: application/json
+
+### Listar oportunidades por estado y cliente
+GET {{Oportunidades_HostAddress}}/api/oportunidades?estado=EnSeguimiento&cliente=Acme&page=1&pageSize=10
+Accept: application/json
+
+### Consultar una oportunidad por id
+GET {{Oportunidades_HostAddress}}/api/oportunidades/1
+Accept: application/json
+
+### Actualizar el estado (PATCH)
+PATCH {{Oportunidades_HostAddress}}/api/oportunidades/1/estado
+Content-Type: application/json
+
+{
+  "estado": "EnSeguimiento"
+}
+
+### Actualizar el estado (PUT, alias del anterior)
+PUT {{Oportunidades_HostAddress}}/api/oportunidades/1/estado
+Content-Type: application/json
+
+{
+  "estado": "Ganada"
+}
+
+### Ejemplo de solicitud inválida (devuelve 400)
+POST {{Oportunidades_HostAddress}}/api/oportunidades
+Content-Type: application/json
+
+{
+  "nombre": "",
+  "cliente": "Acme",
+  "montoEstimado": 10.999
+}
