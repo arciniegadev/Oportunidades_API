@@ -25,6 +25,9 @@ Oportunidades_API/
 │     ├─ Infrastructure/          # Manejo global de excepciones
 │     ├─ Program.cs
 │     └─ appsettings.json
+├─ tests/
+│  ├─ Oportunidades.UnitTests/          # Pruebas de transiciones de estado
+│  └─ Oportunidades.IntegrationTests/   # Pruebas HTTP contra SQL Server de pruebas
 ├─ tools/
 │  └─ Oportunidades.TokenGenerator/  # Genera tokens JWT locales para Consulta y Editor
 └─ README.md
@@ -169,3 +172,77 @@ curl -i -X PATCH http://localhost:5020/api/oportunidades/1/estado \
 Devuelve `200 OK` con la oportunidad resultante, `404 Not Found` si no existe o `409 Conflict`
 si la transición no está permitida o si otro proceso modificó el estado antes de aplicar el
 cambio.
+
+
+
+## Pruebas
+
+El repositorio incluye dos proyectos de prueba dentro de la solución:
+
+- `Oportunidades.UnitTests`: pruebas de las transiciones de estado permitidas y rechazadas.
+- `Oportunidades.IntegrationTests`: pruebas HTTP de alta, consulta, validación, autenticación y autorización.
+
+
+
+### Requisitos
+
+- Las pruebas unitarias no necesitan SQL Server.
+- Las pruebas de integración sí necesitan SQL Server.
+- La primera ejecución crea automáticamente la base `OportunidadesDb_Test` usando
+  `database/01_crear_base.sql` y `database/02_stored_procedures.sql`.
+- La base `Oportunidades` no se modifica. Antes de cada prueba se limpia únicamente
+  `OportunidadesDb_Test.dbo.Oportunidades`.
+- El usuario de SQL Server debe tener permiso para crear bases de datos. Si la base
+  `OportunidadesDb_Test` ya existe, se reutiliza.
+- Las pruebas generan su propio token JWT; no hace falta ejecutar el generador de tokens.
+
+
+### Ejecutar todas las pruebas
+
+Desde la raíz del repositorio:
+
+```powershell
+dotnet test OportunidadesAPI.sln
+```
+
+Resultado esperado: **16 pruebas unitarias y 5 de integración**.
+
+### Ejecutar solo las pruebas unitarias
+
+
+```powershell
+dotnet test tests/Oportunidades.UnitTests/Oportunidades.UnitTests.csproj
+```
+
+### Ejecutar solo las pruebas de integración
+
+Requieren SQL Server:
+
+```powershell
+dotnet test tests/Oportunidades.IntegrationTests/Oportunidades.IntegrationTests.csproj
+```
+
+### Ejecutar una prueba concreta
+
+Por clase:
+
+```powershell
+dotnet test tests/Oportunidades.UnitTests/Oportunidades.UnitTests.csproj --filter 
+```
+
+Por nombre de prueba:
+
+```powershell
+dotnet test tests/Oportunidades.IntegrationTests/Oportunidades.IntegrationTests.csproj --filter 
+
+
+```
+
+Para ver el detalle de la ejecución:
+
+```powershell
+dotnet test OportunidadesAPI.sln --logger "console;verbosity=normal"
+```
+
+
+

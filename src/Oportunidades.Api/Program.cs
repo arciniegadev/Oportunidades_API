@@ -191,3 +191,6 @@ app.MapGet("/health", () => Results.Ok(new
 }));
 
 app.Run();
+
+// Necesario para que WebApplicationFactory<Program> pueda iniciar la API en las pruebas de integración.
+public partial class Program { }
