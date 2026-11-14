@@ -56,7 +56,7 @@ Oportunidades_API/
 
 Las claves están en `src/Oportunidades.Api/appsettings.json`:
 
-- `ConnectionStrings:OportunidadesDb`: cadena de conexión a SQL Server.
+- `ConnectionStrings:Oportunidades`: cadena de conexión a SQL Server.
 - `Jwt:Issuer`: `OportunidadesApi`.
 - `Jwt:Audience`: `OportunidadesApiClientes`.
 
