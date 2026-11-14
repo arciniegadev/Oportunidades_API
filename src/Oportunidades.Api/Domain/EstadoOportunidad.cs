@@ -1,8 +1,5 @@
 namespace Oportunidades.Api.Domain;
 
-/// <summary>
-/// Estados posibles de una oportunidad comercial.
-/// </summary>
 public enum EstadoOportunidad
 {
     Nueva = 0,

@@ -3,10 +3,6 @@ using Oportunidades.Api.Domain;
 
 namespace Oportunidades.Api.Validation;
 
-/// <summary>
-/// Valida que el texto corresponda a uno de los estados permitidos:
-/// Nueva, EnSeguimiento, Ganada o Perdida (sin distinguir mayúsculas).
-/// </summary>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter)]
 public sealed class EstadoOportunidadValidoAttribute : ValidationAttribute
 {

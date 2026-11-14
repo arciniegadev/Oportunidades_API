@@ -3,10 +3,7 @@ using Oportunidades.Api.Repositories;
 
 namespace Oportunidades.Api.Services;
 
-/// <summary>
-/// Reglas de negocio de las oportunidades comerciales. El acceso a datos
-/// queda delegado en <see cref="IOportunidadRepository"/>.
-/// </summary>
+
 public sealed class OportunidadService(
     IOportunidadRepository repository,
     ILogger<OportunidadService> logger) : IOportunidadService

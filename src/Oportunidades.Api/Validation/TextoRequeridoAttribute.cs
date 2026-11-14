@@ -2,13 +2,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Oportunidades.Api.Validation;
 
-/// <summary>
-/// Valida que un texto sea obligatorio (no vacío ni solo espacios) y que,
-/// una vez eliminados los espacios del inicio y del final, no supere la
-/// longitud máxima indicada.
-/// </summary>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter)]
-public sealed class TextoRequeridoAttribute : ValidationAttribute
+public  class TextoRequeridoAttribute : ValidationAttribute
 {
     public TextoRequeridoAttribute(int longitudMaxima)
     {

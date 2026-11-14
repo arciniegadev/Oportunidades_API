@@ -4,13 +4,13 @@
     El script es idempotente: se puede ejecutar más de una vez sin borrar datos.
 */
 
-IF DB_ID(N'OportunidadesDb') IS NULL
+IF DB_ID(N'Oportunidades') IS NULL
 BEGIN
-    CREATE DATABASE OportunidadesDb;
+    CREATE DATABASE Oportunidades;
 END
 GO
 
-USE OportunidadesDb;
+USE Oportunidades;
 GO
 
 IF OBJECT_ID(N'dbo.Oportunidades', N'U') IS NULL

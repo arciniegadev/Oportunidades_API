@@ -15,12 +15,6 @@ public  class Oportunidad
 
     public DateTime FechaCreacionUtc { get; set; }
 
-
-    /// <summary>
-    /// Repetir el estado actual siempre es válido (no modifica el recurso).
-    /// Las únicas transiciones permitidas son Nueva -> EnSeguimiento y
-    /// EnSeguimiento -> Ganada o Perdida. Ganada y Perdida son finales.
-    /// </summary>
     public bool PuedeCambiarEstado(EstadoOportunidad nuevoEstado) =>
         nuevoEstado == Estado ||
         (Estado, nuevoEstado) switch

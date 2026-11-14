@@ -19,6 +19,7 @@ public sealed class OportunidadesController(IOportunidadService service) : Contr
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IReadOnlyList<OportunidadResponse>>> Listar(
         [FromQuery] ListarOportunidadesQuery query,
         CancellationToken cancellationToken = default)
@@ -35,6 +36,7 @@ public sealed class OportunidadesController(IOportunidadService service) : Contr
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<OportunidadResponse>> ObtenerPorId(
         int id,
         CancellationToken cancellationToken)
@@ -60,6 +62,7 @@ public sealed class OportunidadesController(IOportunidadService service) : Contr
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<OportunidadResponse>> Crear(
         [FromBody] CrearOportunidadRequest request,
         CancellationToken cancellationToken)
@@ -84,6 +87,7 @@ public sealed class OportunidadesController(IOportunidadService service) : Contr
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<OportunidadResponse>> ActualizarEstado(
         int id,
         [FromBody] ActualizarEstadoRequest request,

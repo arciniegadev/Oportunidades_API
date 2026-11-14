@@ -8,6 +8,7 @@ using Microsoft.OpenApi;
 
 using Oportunidades.Api.Data;
 using Oportunidades.Api.Infrastructure;
+using Oportunidades.Api.OpenApi;
 using Oportunidades.Api.Repositories;
 using Oportunidades.Api.Services;
 
@@ -52,6 +53,9 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi(options =>
 {
+    options.AddSchemaTransformer<OportunidadSchemaTransformer>();
+    options.AddOperationTransformer<OportunidadOperationTransformer>();
+
     options.AddDocumentTransformer((document, context, cancellationToken) =>
     {
         document.Info.Title = "API de Oportunidades Comerciales";

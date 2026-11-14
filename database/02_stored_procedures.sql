@@ -4,7 +4,7 @@
     El script es idempotente: usa CREATE OR ALTER y se puede ejecutar más de una vez.
 */
 
-USE OportunidadesDb;
+USE Oportunidades;
 GO
 
 -- ============================================================
