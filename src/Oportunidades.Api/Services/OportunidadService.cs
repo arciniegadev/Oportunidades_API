@@ -1,65 +1,25 @@
-using Microsoft.EntityFrameworkCore;
-using Oportunidades.Api.Data;
 using Oportunidades.Api.Domain;
+using Oportunidades.Api.Repositories;
 
 namespace Oportunidades.Api.Services;
 
 /// <summary>
-/// Implementación de los casos de uso sobre SQL Server mediante EF Core.
+/// Reglas de negocio de las oportunidades comerciales. El acceso a datos
+/// queda delegado en <see cref="IOportunidadRepository"/>.
 /// </summary>
 public sealed class OportunidadService(
-    OportunidadesDbContext db,
+    IOportunidadRepository repository,
     ILogger<OportunidadService> logger) : IOportunidadService
 {
-    private const int TamanoPaginaMaximo = 100;
-
-    public async Task<OportunidadListado> ListarAsync(
+    public Task<IReadOnlyList<Oportunidad>> ListarAsync(
         EstadoOportunidad? estado,
-        string? cliente,
-        int page,
-        int pageSize,
-        CancellationToken cancellationToken = default)
-    {
-        page = Math.Max(page, 1);
-        pageSize = Math.Clamp(pageSize, 1, TamanoPaginaMaximo);
+        CancellationToken cancellationToken = default) =>
+        repository.ListarAsync(estado, cancellationToken);
 
-        var query = db.Oportunidades.AsNoTracking();
-
-        if (estado is not null)
-        {
-            query = query.Where(o => o.Estado == estado.Value);
-        }
-
-        if (!string.IsNullOrWhiteSpace(cliente))
-        {
-            var filtroCliente = cliente.Trim();
-            query = query.Where(o => o.Cliente.Contains(filtroCliente));
-        }
-
-        var total = await query.CountAsync(cancellationToken);
-        var desplazamiento = (long)(page - 1) * pageSize;
-
-        if (desplazamiento > int.MaxValue)
-        {
-            return new OportunidadListado([], page, pageSize, total);
-        }
-
-        var oportunidades = await query
-            .OrderByDescending(o => o.FechaCreacionUtc)
-            .ThenByDescending(o => o.Id)
-            .Skip((int)desplazamiento)
-            .Take(pageSize)
-            .ToListAsync(cancellationToken);
-
-        return new OportunidadListado(oportunidades, page, pageSize, total);
-    }
-
-    public async Task<Oportunidad?> ObtenerPorIdAsync(
+    public Task<Oportunidad?> ObtenerPorIdAsync(
         int id,
         CancellationToken cancellationToken = default) =>
-        await db.Oportunidades
-            .AsNoTracking()
-            .FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
+        repository.ObtenerPorIdAsync(id, cancellationToken);
 
     public async Task<Oportunidad> CrearAsync(
         string nombre,
@@ -67,17 +27,13 @@ public sealed class OportunidadService(
         decimal montoEstimado,
         CancellationToken cancellationToken = default)
     {
-        var oportunidad = new Oportunidad
-        {
-            Nombre = nombre.Trim(),
-            Cliente = cliente.Trim(),
-            MontoEstimado = montoEstimado,
-            Estado = EstadoOportunidad.Nueva,
-            FechaCreacionUtc = DateTime.UtcNow
-        };
-
-        db.Oportunidades.Add(oportunidad);
-        await db.SaveChangesAsync(cancellationToken);
+        var oportunidad = await repository.CrearAsync(
+                nombre.Trim(),
+                cliente.Trim(),
+                montoEstimado,
+                cancellationToken)
+            ?? throw new InvalidOperationException(
+                "El procedimiento de alta no devolvió la oportunidad creada.");
 
         logger.LogInformation(
             "Oportunidad {OportunidadId} registrada para el cliente {Cliente}.",
@@ -87,33 +43,58 @@ public sealed class OportunidadService(
         return oportunidad;
     }
 
-    public async Task<Oportunidad?> ActualizarEstadoAsync(
+    public async Task<(ResultadoCambioEstado Resultado, Oportunidad? Oportunidad)> ActualizarEstadoAsync(
         int id,
         EstadoOportunidad nuevoEstado,
         CancellationToken cancellationToken = default)
     {
-        var oportunidad = await db.Oportunidades
-            .FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
+        var actual = await repository.ObtenerPorIdAsync(id, cancellationToken);
 
-        if (oportunidad is null)
+        if (actual is null)
         {
-            return null;
+            return (ResultadoCambioEstado.NoEncontrada, null);
         }
 
-        var estadoAnterior = oportunidad.Estado;
-
-        if (estadoAnterior != nuevoEstado)
+        if (!actual.PuedeCambiarEstado(nuevoEstado))
         {
-            oportunidad.Estado = nuevoEstado;
-            await db.SaveChangesAsync(cancellationToken);
+            return (ResultadoCambioEstado.Conflicto, actual);
+        }
 
+        // Repetir el estado actual devuelve la oportunidad sin modificarla.
+        if (actual.Estado == nuevoEstado)
+        {
+            return (ResultadoCambioEstado.Actualizado, actual);
+        }
+
+        // El UPDATE solo se aplica si el estado persistido sigue siendo el validado.
+        var actualizada = await repository.CambiarEstadoAsync(
+            id,
+            actual.Estado,
+            nuevoEstado,
+            cancellationToken);
+
+        if (actualizada is not null)
+        {
             logger.LogInformation(
                 "Oportunidad {OportunidadId}: estado {EstadoAnterior} -> {EstadoNuevo}.",
-                oportunidad.Id,
-                estadoAnterior,
+                id,
+                actual.Estado,
                 nuevoEstado);
+
+            return (ResultadoCambioEstado.Actualizado, actualizada);
         }
 
-        return oportunidad;
+        // Modificación concurrente: se devuelve el estado vigente para el 409.
+        var vigente = await repository.ObtenerPorIdAsync(id, cancellationToken);
+
+        logger.LogWarning(
+            "Oportunidad {OportunidadId}: conflicto al cambiar de {EstadoValidado} a {EstadoNuevo}.",
+            id,
+            actual.Estado,
+            nuevoEstado);
+
+        return vigente is null
+            ? (ResultadoCambioEstado.NoEncontrada, null)
+            : (ResultadoCambioEstado.Conflicto, vigente);
     }
 }

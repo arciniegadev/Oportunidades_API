@@ -1,11 +1,18 @@
 @Oportunidades_HostAddress = http://localhost:5020
 
-### Health check
+# Pega aquí los tokens generados con:
+#   dotnet run --project tools/Oportunidades.TokenGenerator -- Consulta
+#   dotnet run --project tools/Oportunidades.TokenGenerator -- Editor
+@tokenConsulta = REEMPLAZA_CON_TOKEN_DE_CONSULTA
+@tokenEditor = REEMPLAZA_CON_TOKEN_DE_EDITOR
+
+### Health check (no requiere token)
 GET {{Oportunidades_HostAddress}}/health
 Accept: application/json
 
-### Crear una oportunidad (el estado inicial siempre es Nueva)
+### Crear una oportunidad (rol Editor; el estado inicial siempre es Nueva)
 POST {{Oportunidades_HostAddress}}/api/oportunidades
+Authorization: Bearer {{tokenEditor}}
 Content-Type: application/json
 
 {
@@ -14,28 +21,33 @@ Content-Type: application/json
   "montoEstimado": 125000.50
 }
 
-### Listar oportunidades (con filtros y paginación)
-GET {{Oportunidades_HostAddress}}/api/oportunidades?page=1&pageSize=20
+### Listar oportunidades (rol Consulta o Editor)
+GET {{Oportunidades_HostAddress}}/api/oportunidades
+Authorization: Bearer {{tokenConsulta}}
 Accept: application/json
 
-### Listar oportunidades por estado y cliente
-GET {{Oportunidades_HostAddress}}/api/oportunidades?estado=EnSeguimiento&cliente=Acme&page=1&pageSize=10
+### Listar oportunidades filtradas por estado
+GET {{Oportunidades_HostAddress}}/api/oportunidades?estado=EnSeguimiento
+Authorization: Bearer {{tokenConsulta}}
 Accept: application/json
 
 ### Consultar una oportunidad por id
 GET {{Oportunidades_HostAddress}}/api/oportunidades/1
+Authorization: Bearer {{tokenConsulta}}
 Accept: application/json
 
-### Actualizar el estado (PATCH)
+### Actualizar el estado (rol Editor): Nueva -> EnSeguimiento
 PATCH {{Oportunidades_HostAddress}}/api/oportunidades/1/estado
+Authorization: Bearer {{tokenEditor}}
 Content-Type: application/json
 
 {
   "estado": "EnSeguimiento"
 }
 
-### Actualizar el estado (PUT, alias del anterior)
-PUT {{Oportunidades_HostAddress}}/api/oportunidades/1/estado
+### Actualizar el estado (rol Editor): EnSeguimiento -> Ganada
+PATCH {{Oportunidades_HostAddress}}/api/oportunidades/1/estado
+Authorization: Bearer {{tokenEditor}}
 Content-Type: application/json
 
 {
@@ -44,6 +56,7 @@ Content-Type: application/json
 
 ### Ejemplo de solicitud inválida (devuelve 400)
 POST {{Oportunidades_HostAddress}}/api/oportunidades
+Authorization: Bearer {{tokenEditor}}
 Content-Type: application/json
 
 {

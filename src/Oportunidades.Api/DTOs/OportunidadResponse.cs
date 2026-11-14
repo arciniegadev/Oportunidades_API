@@ -1,10 +1,8 @@
 using Oportunidades.Api.Domain;
 
-namespace Oportunidades.Api.Contracts;
+namespace Oportunidades.Api.DTOs;
 
-/// <summary>
-/// Representación de una oportunidad devuelta por la API.
-/// </summary>
+
 public sealed record OportunidadResponse(
     int Id,
     string Nombre,
@@ -12,15 +10,6 @@ public sealed record OportunidadResponse(
     decimal MontoEstimado,
     EstadoOportunidad Estado,
     DateTime FechaCreacionUtc);
-
-/// <summary>
-/// Resultado paginado para el listado de oportunidades.
-/// </summary>
-public sealed record OportunidadListResponse(
-    IReadOnlyList<OportunidadResponse> Items,
-    int Page,
-    int PageSize,
-    int Total);
 
 public static class OportunidadMappings
 {

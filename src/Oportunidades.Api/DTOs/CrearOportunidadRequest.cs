@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Oportunidades.Api.Validation;
 
-namespace Oportunidades.Api.Contracts;
+namespace Oportunidades.Api.DTOs;
 
 public  class CrearOportunidadRequest
 {

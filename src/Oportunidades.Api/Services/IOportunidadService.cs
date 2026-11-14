@@ -3,16 +3,19 @@ using Oportunidades.Api.Domain;
 namespace Oportunidades.Api.Services;
 
 /// <summary>
-/// Casos de uso de oportunidades comerciales. El controlador depende de esta
-/// abstracción y no de Entity Framework ni de la base de datos.
+/// Resultado de intentar cambiar el estado de una oportunidad.
 /// </summary>
+public enum ResultadoCambioEstado
+{
+    Actualizado,
+    NoEncontrada,
+    Conflicto
+}
+
 public interface IOportunidadService
 {
-    Task<OportunidadListado> ListarAsync(
+    Task<IReadOnlyList<Oportunidad>> ListarAsync(
         EstadoOportunidad? estado,
-        string? cliente,
-        int page,
-        int pageSize,
         CancellationToken cancellationToken = default);
 
     Task<Oportunidad?> ObtenerPorIdAsync(
@@ -25,17 +28,8 @@ public interface IOportunidadService
         decimal montoEstimado,
         CancellationToken cancellationToken = default);
 
-    Task<Oportunidad?> ActualizarEstadoAsync(
+    Task<(ResultadoCambioEstado Resultado, Oportunidad? Oportunidad)> ActualizarEstadoAsync(
         int id,
         EstadoOportunidad nuevoEstado,
         CancellationToken cancellationToken = default);
 }
-
-/// <summary>
-/// Resultado paginado del listado de oportunidades.
-/// </summary>
-public sealed record OportunidadListado(
-    IReadOnlyList<Oportunidad> Items,
-    int Page,
-    int PageSize,
-    int Total);

@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <!-- Compartido por la API y la herramienta de tokens para leer la misma clave local. -->
+    <UserSecretsId>fe2482fb-11f0-44f5-a99c-d6cc07124a94</UserSecretsId>
+  </PropertyGroup>
+</Project>
