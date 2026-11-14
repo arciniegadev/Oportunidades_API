@@ -56,9 +56,10 @@ Oportunidades_API/
 
 Las claves están en `src/Oportunidades.Api/appsettings.json`:
 
-- `ConnectionStrings:Oportunidades`: cadena de conexión a SQL Server.
+- `ConnectionStrings:OportunidadesDb`: cadena de conexión a SQL Server.
 - `Jwt:Issuer`: `OportunidadesApi`.
 - `Jwt:Audience`: `OportunidadesApiClientes`.
+
 
 
 
@@ -73,6 +74,14 @@ $key = [Convert]::ToBase64String($bytes)
 dotnet user-secrets set "Jwt:SigningKey" "$key" --project src/Oportunidades.Api
 ```
 
+En producción o CI no se usan user secrets. Configura las claves con variables de entorno:
+
+```powershell
+$env:ConnectionStrings__OportunidadesDb = "Server=MI_SERVIDOR;Database=Oportunidades;Trusted_Connection=True;TrustServerCertificate=True;Encrypt=False"
+$env:Jwt__SigningKey = "<clave-de-al-menos-32-caracteres>"
+$env:Jwt__Issuer = "OportunidadesApi"
+$env:Jwt__Audience = "OportunidadesApiClientes"
+```
 
 ## Restaurar y ejecutar el API
 
@@ -99,6 +108,9 @@ dotnet run --project tools/Oportunidades.TokenGenerator -- Editor --minutes 120
 Copia el token devuelto y envíalo en la cabecera `Authorization: Bearer <token>`.
 
 ## Endpoints
+
+> Los ejemplos de `curl` usan sintaxis de bash. En PowerShell puedes escribir el comando en una
+> sola línea o usar backtick (`` ` ``) para continuar líneas.
 
 | Método y ruta | Rol permitido | Respuestas |
 | --- | --- | --- |
@@ -173,7 +185,17 @@ Devuelve `200 OK` con la oportunidad resultante, `404 Not Found` si no existe o 
 si la transición no está permitida o si otro proceso modificó el estado antes de aplicar el
 cambio.
 
+### Transiciones permitidas
 
+| Estado actual | Estados permitidos |
+| --- | --- |
+| `Nueva` | `EnSeguimiento` |
+| `EnSeguimiento` | `Ganada`, `Perdida` |
+| `Ganada` | Solo `Ganada` (no cambia) |
+| `Perdida` | Solo `Perdida` (no cambia) |
+
+Repetir el mismo estado devuelve `200 OK` sin modificar el registro. Cualquier otra combinación
+devuelve `409 Conflict`.
 
 ## Pruebas
 
@@ -196,6 +218,14 @@ El repositorio incluye dos proyectos de prueba dentro de la solución:
   `OportunidadesDb_Test` ya existe, se reutiliza.
 - Las pruebas generan su propio token JWT; no hace falta ejecutar el generador de tokens.
 
+Si usas otra instancia de SQL Server, define la conexión antes de ejecutar las pruebas:
+
+```powershell
+$env:ConnectionStrings__OportunidadesDb_Test = "Server=MI_INSTANCIA;Database=OportunidadesDb_Test;Trusted_Connection=True;TrustServerCertificate=True;Encrypt=False"
+```
+
+La base de pruebas siempre se llama `OportunidadesDb_Test`; esta variable solo cambia el servidor
+y las credenciales.
 
 ### Ejecutar todas las pruebas
 
@@ -233,15 +263,58 @@ dotnet test tests/Oportunidades.UnitTests/Oportunidades.UnitTests.csproj --filte
 Por nombre de prueba:
 
 ```powershell
-dotnet test tests/Oportunidades.IntegrationTests/Oportunidades.IntegrationTests.csproj --filter 
-
-
+dotnet test tests/Oportunidades.IntegrationTests/Oportunidades.IntegrationTests.csproj --filter "FullyQualifiedName~Post_Invalido_Devuelve400"
 ```
 
-Para ver el detalle de la ejecución:
+### Ver los registros de la base de pruebas
+
+Las pruebas de integración escriben en `OportunidadesDb_Test`. Puedes comprobarlo con:
+
+```powershell
+sqlcmd -S localhost -E -C -d OportunidadesDb_Test -Q "SELECT * FROM dbo.Oportunidades"
+```
+
+Las pruebas limpian la tabla **antes** de cada prueba, no después de la última. Por eso, al
+terminar la suite puede quedar el registro creado por la última prueba que se ejecutó. No se
+elimina la base `OportunidadesDb_Test`; se reutiliza en la siguiente ejecución.
+
+### Si la API está ejecutándose
+
+`dotnet test` compila la solución antes de ejecutar las pruebas. Si la API está corriendo desde
+`bin/Debug`, Windows puede bloquear `Oportunidades.Api.exe` y la compilación falla.
+
+Puedes detener la API mientras ejecutas las pruebas, o compilar una vez, levantar la API y
+ejecutar las pruebas sin recompilar:
+
+```powershell
+dotnet build OportunidadesAPI.sln
+dotnet run --project src/Oportunidades.Api
+```
+
+En otra terminal:
+
+```powershell
+dotnet test OportunidadesAPI.sln --no-build
+```
+
+También puedes ejecutar la API en `Release` y las pruebas en `Debug` para que no compartan la
+carpeta de salida:
+
+```powershell
+dotnet run --project src/Oportunidades.Api -c Release
+dotnet test OportunidadesAPI.sln
+```
+
+### Ver el detalle de la ejecución
 
 ```powershell
 dotnet test OportunidadesAPI.sln --logger "console;verbosity=normal"
+```
+
+Para listar las pruebas disponibles:
+
+```powershell
+dotnet test OportunidadesAPI.sln --list-tests
 ```
 
 
