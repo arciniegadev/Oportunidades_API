@@ -42,5 +42,5 @@ BEGIN
 END
 GO
 
-PRINT N'Base de datos OportunidadesDb lista.';
+PRINT N'Base de datos Oportunidades lista.';
 GO

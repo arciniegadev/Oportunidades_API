@@ -11,7 +11,7 @@ Oportunidades_API/
 ├─ OportunidadesAPI.sln
 ├─ Directory.Build.props          # UserSecretsId compartido por la API y el generador de tokens
 ├─ database/
-│  ├─ 01_crear_base.sql           # Base OportunidadesDb, tabla, restricciones e índice
+│  ├─ 01_crear_base.sql           # Base Oportunidades, tabla, restricciones e índice
 │  └─ 02_stored_procedures.sql    # Procedimientos de alta, consulta, listado y cambio de estado
 ├─ src/
 │  └─ Oportunidades.Api/
