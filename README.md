@@ -257,7 +257,9 @@ dotnet test tests/Oportunidades.IntegrationTests/Oportunidades.IntegrationTests.
 Por clase:
 
 ```powershell
-dotnet test tests/Oportunidades.UnitTests/Oportunidades.UnitTests.csproj --filter 
+
+
+dotnet test tests/Oportunidades.UnitTests/Oportunidades.UnitTests.csproj --filter "FullyQualifiedName~OportunidadTests"
 ```
 
 Por nombre de prueba:
